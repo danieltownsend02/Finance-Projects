@@ -1,3 +1,43 @@
+# Multi-Asset Systematic Architecture: Parabolic SAR Trend Tracking with Decentralized sGARCH Risk Filters
+
+## Project Overview
+This repository hosts a programmatic, multi-asset quantitative trading system implemented in R that concurrently processes and evaluates a portfolio of liquid mega-cap tech equities: **Apple (AAPL)**, **Alphabet (GOOG)**, and **Amazon (AMZN)**. All performance and asset metrics are evaluated against the institutional baseline **S&P 500 ETF (SPY)** benchmark.
+
+the system deploys standalone **Standard GARCH (sGARCH) volatility ceilings with a Student-t distribution** to freeze trading on any asset channel experiencing localized risk expansions.
+
+---
+
+## Technical Strategy & Allocation Logic
+
+### 1. High-Sensitivity Parabolic Trailing Layers
+* **Parabolic SAR Acceleration Grid:** The trading system utilizes High-Low-Close (HLC) asset arrays and initializes a standard Parabolic SAR loop with an initial acceleration factor of `0.02` and a maximum cap of `0.2`. 
+* **Dynamic Reversals:** A **Long Position (1)** is entered when closing prices break above the trailing parabolic stop dot. The platform instantly exits to **Cash (0)** when prices cross back below the SAR threshold.
+* **Look-Ahead Bias Countermeasures:** To protect backtesting validity, all allocation signals are explicitly **lagged by 1 period**, guaranteeing that trades are filled on the open of the subsequent market candle rather than capturing un-fillable historical prices.
+
+### 2. Microstructure Risk Protection via Decentralized sGARCH Matrices
+Because high-sensitivity trailing stops are highly vulnerable to localized noise, the architecture establishes separate risk boundaries for each asset:
+* **Volatility Modeling Framework:** Independent univariate Standard GARCH (`sGARCH`) models map the time-varying variance of daily log-returns. The framework incorporates a **Student-t distribution (`std`)** to accurately account for fat-tailed asset innovations and financial shocks.
+* **Decentralized 75th Percentile Volatility Ceiling:** The script extracts the specific conditional volatility ($\sigma$) for each independent asset pipeline and isolates its 75th percentile boundary. If an equity's current variance spikes into its top 25% historical tail, the system overrides the Parabolic SAR markers and **forces that asset flat to cash** without interrupting the trading algorithms running on the remainder of the portfolio.
+
+### 3. Institutional Execution Friction & Analytics
+* **Transaction Fee Penalization:** Each pipeline charges a fixed **10-basis-point (0.1%) commission slippage penalty** per asset allocation adjustment. This filters out unprofitable high-frequency churn and guarantees net backtested results reflect real-world execution.
+* **Comparative Attribution Matrix:** The platform uses a parallel data framework to compute returns, generating dual-pane plots displaying the live technical indicator overlays alongside multi-metric performance summaries (cumulative return curves and peak-to-trough drawdowns) relative to the SPY baseline index.
+
+---
+
+## Technical Ecosystem & Dependencies
+* **Data Processing & Analytics:** `quantmod`, `TTR`, `xts`
+* **Volatility Modeling Frameworks:** `rugarch`
+* **Portfolio Attribution Suite:** `PerformanceAnalytics`
+
+Simple Moving Averages are lag-heavy and slow to respond to trend pivots. I implemented a Parabolic SAR system because its acceleration factor dynamically tightens the stop-loss dot closer to price as the trend extends. It actively tracks directional velocity, rather than just historical smooth price means.
+
+Parabolic SAR systems fail during non-trending, choppy periods. To fix this, I engineered a Standard GARCH volatility filter using a Student-t distribution. By measuring the specific 75th percentile of conditional variance for each stock, the system automatically detects when a stock shifts from a clean trend to a choppy, mean-reverting band and pulls out of positions to prevent capital erosion.
+
+this project treats risk as an asset-specific variable. Amazon has a higher historical beta and volatility threshold than Apple. By calculating a standalone GARCH 75th percentile for each component independently, the system ensures that a massive risk flare-up in one asset doesn't trigger a false exit signal on a calmer, well-behaved asset elsewhere in the portfolio.
+
+-----------------------------------------------------------
+
 # Parabolic + Garch filter
 # Required libraries
 library(quantmod)
