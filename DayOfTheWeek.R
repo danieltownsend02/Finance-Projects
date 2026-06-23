@@ -1,3 +1,50 @@
+# Market Efficiency Analysis: Testing the Day-of-the-Week Anomaly on the FTSE 100
+
+## Project Overview
+This repository hosts an empirical financial econometrics study written in R that investigates a classic market anomaly: the **Day-of-the-Week Effect**. Using historical data from the **FTSE 100 Index**, the research tests the Weak-Form Efficient Market Hypothesis (EMH) to determine if structural return variations exist across specific weekdays.
+
+The analytical pipeline is broken into three systematic stages:
+1. **Distributional Modeling:** Isolating return metrics by individual days and testing for normality, skewness, and fat-tailed distributions.
+2. **Analysis of Variance (ANOVA) & OLS Modeling:** Testing the statistical significance of daily mean differentials under robust standard error controls.
+3. **Serial Correlation Adjustments:** Resolving residual time-dependency via Ljung-Box diagnostic loops and an Autoregressive [AR(p)] specification.
+
+---
+
+## Technical Framework & Methodology
+
+### 1. Statistical Moments & Normality Controls
+Before building parametric models, the script breaks down daily log-returns into conditional subsets based on the day of the week:
+* **The Descriptive Matrix:** The `stargazer` package formats baseline summary statistics (mean, median, standard deviation, and range limits) for each unique weekday vector.
+* **Higher-Order Moments:** The returns are evaluated for Skewness and Kurtosis to isolate non-normal asymmetric features.
+* **The Jarque-Bera Test:** A formalized Jarque-Bera test is executed on the composite return profile to mathematically prove that stock index innovations exhibit significant fat-tails ($p < 0.05$), validating the necessity of robust regression approaches.
+
+### 2. Hypothesis Testing & Structural Anomalies
+To determine if average returns systematically differ between trading days, the script executes two parallel statistical frameworks:
+* **ANOVA Specification:** An Analysis of Variance (`aov`) framework tests the global null hypothesis that the mean log-returns across all five weekdays are mathematically identical ($H_0: \mu_{\text{Mon}} = \mu_{\text{Tue}} = \dots = \mu_{\text{Fri}}$).
+* **Dummy-Variable Linear Model:** An OLS regression maps the return array against weekday factors. To control for potential heteroskedasticity in daily return variances, the script applies White-corrected standard errors via Heteroskedasticity-Consistent (`HC1`) covariance estimations.
+
+### 3. Time-Dependency Diagnostics & Autoregressive Correction
+A common failure in market anomaly research is ignoring serial correlation (where yesterday's return impacts today's return), which inflates t-statistics and leads to false conclusions. This framework implements a structural diagnostic cycle:
+* **Autocorrelation Analysis:** The Sample Autocorrelation Function (`acf`) evaluates the model's residuals for lingering serial patterns.
+* **Automated Ljung-Box Loops:** The code loops through a series of lags to execute consecutive Ljung-Box independence tests (`Box.test`), mapping p-values against a $5\%$ significance boundary line to pinpoint structural serial dependency.
+* **Akaike Information Criterion (AIC) Grid Search:** To determine the correct lag depth, an automated loop fits consecutive Autoregressive models up to an $\text{AR}(15)$ order, isolating the absolute minimum AIC value to find the optimal lag length.
+* **The Autoregressive Return Specification:** The final refined model integrates lagged return variables alongside weekday factor variables to cleanly isolate the true weekday anomaly effects from simple momentum feedback loops:
+$$\text{Return}_t = \beta_0 + \sum_{i=1}^{4} \gamma_i \text{Return}_{t-i} + \sum_{j=1}^{4} \delta_j \text{DayDummy}_{j,t} + \epsilon_t$$
+
+---
+
+## Technical Ecosystem & Dependencies
+* **Data Retrieval & Time-Series Engineering:** `quantmod`, `xts`, `zoo`
+* **Distributional Dynamics & Testing:** `moments`, `tseries`
+* **Linear Modeling & Econometric Analytics:** `dplyr`, `parameters`, `stargazer`
+* **Data Visualization & Plotting Suites:** `ggplot2`
+
+When testing for market anomalies like the Day-of-the-Week effect, your residuals will often exhibit serial correlation. If you ignore this, your standard error estimates are biased, which can make a random return patterns look statistically significant. I solved this by running an AIC grid search to identify the optimal lag structure and then fitting an Autoregressive [AR(p)] model to filter out price momentum before testing the weekday coefficients.
+
+The Jarque-Bera test mathematically confirms that stock index returns reject normality due to extreme kurtosis. This is a crucial concept when evaluating risk, because assuming a normal distribution severely understates the frequency of tail-risk events and market shocks.
+
+--------------------------------------------------
+
 library(quantmod)
 library(forecast)
 library(dplyr)
