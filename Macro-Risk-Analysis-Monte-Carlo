@@ -12,8 +12,6 @@ The framework is divided into three core financial components:
 
 ## Architecture & Quantitative Methods
 
-
-
 ### 1. Macro Inflation & Rolling Correlation Matrix
 Traditional portfolio theory assumes a negative correlation between stocks and bonds to provide diversification. This model tests that assumption against inflation data:
 * **The Inflation Shock Framework:** Data is ingested from the Federal Reserve Economic Data (FRED) system to extract the 12-month percentage change in the Consumer Price Index (CPI). 
@@ -35,6 +33,12 @@ Standard forecasting models often rely on a normal bell-curve assumption, which 
 ## Technical Ecosystem & Dependencies
 * **Data Ingestion & Macro Pipelines:** `quantmod` (Yahoo Finance / FRED API)
 * **Risk Reporting & Optimization Suite:** `PerformanceAnalytics`
+
+This project directly investigates asset diversification. Under normal economic conditions, the stock-bond correlation is negative, protecting capital. However, my rolling correlation overlay shows that during inflation shocks, the correlation turns positive. Both stocks and bonds drop together because rising interest rates compress corporate valuations and bond prices simultaneously.
+
+Most simple Monte Carlo models rely on a standard normal distribution, which fails to capture extreme market moves. I built a non-parametric bootstrapping simulator that samples actual historical returns with replacement. This preserves the fat tails, volatility, and skewness found in real-world market distributions.
+
+While the regression shows inflation heavily impacts the correlation between stocks and bonds, the low R2 indicates that inflation isn't the only factor. It proves that while consumer price shifts drive asset behavior, multi-factor models are required to capture total market dynamics.
 
 -----------------------------------------------------------------
 
