@@ -1,0 +1,47 @@
+# Cointegration model: Statistical Arbitrage with EM Regime Filtering & apARCH Sizing
+
+## Project Overview
+This repository hosts a Quantitative Trading Strategy implemented in R that executes a **Statistical Arbitrage (Pairs Trading)** framework on liquid technology equities (**AAPL** and **GOOG**). The engine utilizes the **S&P 500 ETF (SPY)** as a macroeconomic benchmark.
+
+Instead of relying on basic price-gap triggers, this strategy implements a dual-layered risk mitigation system:
+1. **Macro Filtering:** Uses an Expectation-Maximization (EM) Gaussian Mixture Model to pause trading during broader market panics.
+2. **Dynamic Sizing:** Employs an Asymmetric Power ARCH (apARCH) framework to scale position sizing based on individual asset volatility.
+
+---
+
+## Core Mechanics & Workflow
+
+
+
+### 1. Training & Cointegration (Engle-Granger Approach)
+* **Look-Ahead Bias Prevention:** The data is split into a Training Window (2010–2018) to initialize model parameters and an Out-of-Sample Test Window (2019–2025) to evaluate true strategy performance.
+* **Stationarity Check:** The model calculates the historical tracking error (residual spread) between Apple and Google using an OLS regression. An **Augmented Dickey-Fuller (ADF) Test** is executed to confirm that the spread is stationary and mean-reverting.
+* **Robustness:** A **Johansen Cointegration Test** is included to double-check the long-term economic equilibrium between the two assets.
+
+### 2. Algorithmic Signal Generation
+* The residual spread is continuously normalized into a dynamic **Z-score** (Mean = 0, Standard Deviation = 1).
+* **Trading Rules:** * When the Z-score rises above `1.0` (Apple is overvalued relative to Google), the engine triggers a **Short Signal (-1)**.
+  * When the Z-score falls below `-1.0` (Apple is undervalued relative to Google), the engine triggers a **Long Signal (1)**.
+
+### 3. Two-Tier Risk & Sizing Controls
+* **Expectation-Maximization (EM) Regime Filter:** The model runs a clustering algorithm (`normalmixEM`) on S&P 500 returns to categorize the broader market into two regimes: **Calm vs. Volatile**. If the market shifts into the volatile state, all trading signals are muted to preserve capital.
+* **Dynamic Sizing via apARCH:** To manage volatility within the asset spread, an Asymmetric Power ARCH model with a **Student-t distribution** is utilized. Position sizing is scaled inversely ($1/\sigma$) to reduce trade sizes when volatility rises, protecting the portfolio from fat-tailed risk.
+
+### 4. Real-World Cost Constraints
+To prevent unrealistic academic performance, the engine penalizes portfolio turnover by factoring in a **10-basis-point (0.1%) transaction cost** per position change. This ensures all backtested returns reflect realistic, net institutional execution metrics.
+
+---
+
+## Performance Attribution & Analytics
+The net returns of the strategy are run through the `PerformanceAnalytics` ecosystem to generate institutional key performance indicators:
+* **Annualized Returns:** Compares out-of-sample strategy performance against the SPY benchmark.
+* **Sortino Ratio:** Measures risk-adjusted performance, specifically analyzing excess returns per unit of downside deviation.
+* **Maximum Drawdown:** Monitors peak-to-trough capital erosion to track asset preservation.
+
+---
+
+## Tech Stack & Libraries Used
+* **Data Pipelines:** `quantmod`, `xts`
+* **Econometrics & Volatility Modeling:** `urca`, `rugarch`, `tseries`
+* **Statistical Clustering:** `mixtools`
+* **Performance Analysis:** `PerformanceAnalytics`
