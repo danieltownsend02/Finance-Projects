@@ -1,3 +1,42 @@
+# Macro Asset Allocation Analysis: Stock-Bond Correlation Dynamics & Non-Parametric Risk Simulation
+
+## Project Overview
+This repository contains a quantitative research framework implemented in R designed to analyze macroeconomic risk factors, asset diversification boundaries, and future price uncertainty.
+
+The framework is divided into three core financial components:
+1. **Portfolio Diversification & Inflation Dynamics:** Tracking the rolling correlation between equities (**SPY**) and fixed income (**TLT**) against the Consumer Price Index (**CPI**) to map structural regime shifts.
+2. **Growth vs. Quality Analysis:** Assessing performance characteristics and historic drawdowns of mega-cap growth assets (**NVDA**, **MSFT**) against broad equity indexes.
+3. **Non-Parametric Predictive Modeling:** Deploying a 1,000-path Monte Carlo simulation using historical asset innovations to forecast forward returns without assuming a normal distribution.
+
+---
+
+## Architecture & Quantitative Methods
+
+
+
+### 1. Macro Inflation & Rolling Correlation Matrix
+Traditional portfolio theory assumes a negative correlation between stocks and bonds to provide diversification. This model tests that assumption against inflation data:
+* **The Inflation Shock Framework:** Data is ingested from the Federal Reserve Economic Data (FRED) system to extract the 12-month percentage change in the Consumer Price Index (CPI). 
+* **Rolling Correlation Mechanics:** The framework calculates a 120-day rolling correlation coefficient between SPY and TLT returns. 
+* **Econometric Modeling:** Ordinary Least Squares (OLS) linear regressions are fitted to map the relationship between inflation metrics and stock-bond asset correlations. The results demonstrate how consumer price spikes shift the historical stock-bond correlation from negative to positive, highlighting diversification breakdown during high-inflation regimes.
+
+### 2. Multi-Asset Risk Evaluation
+* **Performance Attribution:** The system aggregates metrics for long-term Treasury bonds (TLT), quality technology (MSFT), hyper-growth equity (NVDA), and the broad market (SPY).
+* **Downside Analysis:** Utilizing the `PerformanceAnalytics` toolbox, the script generates annualized return tables, box plots, rolling performance summaries, and peak-to-trough drawdown schedules to quantify specific corporate asset risks.
+
+### 3. Non-Parametric Forward Simulation (Monte Carlo)
+Standard forecasting models often rely on a normal bell-curve assumption, which underestimates real-world financial risks. This script implements an empirical approach:
+* **Bootstrapping Historical Returns:** The model isolates historical daily log-returns for NVIDIA (NVDA) and converts them into an empirical return distribution.
+* **Path Generation Matrix:** The algorithm constructs a $252 \times 1000$ simulation matrix representing 252 trading days across 1,000 independent geometric random paths.
+* **Quantifying Uncertainty:** Each trajectory samples historical data via replacement (`replace = TRUE`). The resulting array preserves fat tails and real-world skewness. The engine outputs average expected terminal prices alongside the 5th, 20th, 80th, and 95th percentiles to map risk boundaries.
+
+---
+
+## Technical Ecosystem & Dependencies
+* **Data Ingestion & Macro Pipelines:** `quantmod` (Yahoo Finance / FRED API)
+* **Risk Reporting & Optimization Suite:** `PerformanceAnalytics`
+
+-----------------------------------------------------------------
 
 # compare stocks to bonds, correlation and portfolio theory
 # relationship between value and growth over last few years
