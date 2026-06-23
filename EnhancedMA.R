@@ -1,3 +1,43 @@
+# Trend-Following Trading System: Multi-SMA Crossover with Dynamic sGARCH Volatility Regime Muting
+
+## Project Overview
+This repository contains an algorithmic trend-following strategy implemented in R that trades **Apple (AAPL)** against the **S&P 500 ETF (SPY)** market benchmark. 
+
+The strategy relies on a classic dual Simple Moving Average (20-day and 50-day SMA) crossover framework to catch major asset trends. However, to prevent severe drawdowns and "whipsaws" during volatile market transitions, the core execution layer features a mathematical **sGARCH risk filter using a Student-t distribution** to entirely freeze trading when localized asset risk spikes.
+
+---
+
+## Core Mechanics & Strategy Logic
+
+### 1. Trend Identification Layers
+* **SMA Crossover Framework:** The system evaluates 20-period and 50-period Simple Moving Averages. A **Long Signal (1)** is generated when the faster 20-day SMA crosses above the slower 50-day SMA, indicating upward momentum. The position is **Liquidated to Cash (0)** when the 20-day SMA falls below the 50-day SMA.
+* **Execution Delays (Lag):** To ensure a valid, realistic backtest and eliminate look-ahead bias, all execution triggers are strictly lagged by 1 period so that trades are executed at the next open rather than on historical close data.
+
+### 2. Microstructure Risk Control via sGARCH
+Trend-following strategies historically lose capital during highly volatile, choppy, sideways-moving markets. This architecture resolves that weakness by tracking mathematical volatility clustering:
+* **Volatility Modeling:** A standard GARCH (`sGARCH`) framework is fitted to daily log-returns using a **Student-t distribution (`std`)** to capture heavy tails and real-world shock risks.
+* **The 75th Percentile Mute Switch:** The code extracts conditional volatility ($\sigma$) and calculates its historical 75th percentile. If current asset volatility spikes into the top 25% of all historical regimes, the system flags the market as a high-risk zone, overrides the trend-following signals, and **forces the strategy into cash** to preserve portfolio equity.
+
+### 3. Realistic Friction Penalization
+* The model enforces a **10-basis-point (0.1%) commission charge** whenever the portfolio adjusts its position. 
+* Factoring transaction costs directly into the return matrix guarantees that performance analytics account for realistic market execution friction, rather than presenting a theoretical academic ideal.
+
+---
+
+## Performance Metrics & Analysis
+The final strategy performance and downside protections are evaluated using the `PerformanceAnalytics` toolbox:
+* **Annualized Returns:** Out-of-sample comparison of net strategy performance against a long-only SPY benchmark.
+* **Sortino Ratio:** Evaluation of downside risk-adjusted returns, measuring outperformance relative to downside deviation.
+* **Maximum Drawdown (MDD):** Analysis of peak-to-trough equity curve preservation, evaluating the defensive effectiveness of the GARCH volatility ceiling.
+
+---
+
+## Technical Ecosystem & Dependencies
+* **Data Processing & Analytics:** `quantmod`, `TTR`, `xts`
+* **Volatility Modeling Frameworks:** `rugarch`
+* **Portfolio Attribution:** `PerformanceAnalytics`
+
+
 # Load required libraries
 library(quantmod)
 library(TTR)
