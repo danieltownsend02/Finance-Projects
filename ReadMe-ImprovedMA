@@ -1,0 +1,30 @@
+# Quantitative Trend-Following Architecture: Multi-SMA Crossover with Dynamic sGARCH Risk-Muting Filter
+
+## Project Overview
+This repository contains a quantitative asset allocation model written in R that trades **Apple (AAPL)** relative to the **S&P 500 ETF (SPY)** market benchmark. 
+
+The framework bridges traditional technical momentum tracking with modern econometrics. It relies on a classic dual Simple Moving Average (20-day vs. 50-day SMA) crossover framework to identify structural asset trends. To eliminate the classic drawdown vulnerability of trend-following strategies during volatile, sideways market conditions, the framework runs a **Standard GARCH (sGARCH) model with a Student-t distribution** to act as a dynamic circuit breaker—muting trading signals when localized asset risk spikes.
+
+---
+
+## Technical Strategy & Architecture
+
+### 1. Trend Identification & Execution Delay Protection
+* **SMA Crossover Allocation:** The system tracks the intersection of 20-period and 50-period Simple Moving Averages. A **Long Signal (1)** is established when the short-term trend crosses above the long-term trend (Golden Cross). The position is **Liquidated completely to Cash (0)** when the short-term trend drops below the long-term trend (Death Cross).
+* **Execution Bias Elimination:** To guarantee backtesting integrity and avoid look-ahead bias, all signal-generation elements are explicitly **lagged by 1 period**. This ensures executions are filled on the subsequent trading candle rather than capturing unrealistic historical closing data.
+
+### 2. Microstructure Risk Protection via Variance Clustering
+Trend-following strategies historically suffer capital erosion ("whipsaws") when an asset experiences sharp, non-trending volatility spikes. This framework mitigates that exposure through a statistical volatility ceiling:
+* **Volatility Modeling Framework:** A univariate Standard GARCH (`sGARCH`) process is fitted to daily log-returns. The system enforces a **Student-t distribution (`std`)** to accurately model heavy tails and protect against extreme financial shocks.
+* **The 75th Percentile Volatility Ceiling:** The model continuously extracts conditional asset volatility ($\sigma$). A dynamic risk filter computes the historical 75th percentile of this volatility series. If the current asset variance spikes into the top 25% of its historical range, the system overrides the moving average signal and **forces the portfolio flat into cash**, insulating capital from high-risk regimes.
+
+### 3. Execution Friction & Performance Attribution
+* **Transaction Fee Penalization:** The model enforces a **10-basis-point (0.1%) commission charge** whenever the portfolio shifts asset allocations. Factoring in execution friction filters out high-frequency noise and guarantees net backtested results reflect real-world execution.
+* **Attribution Tooling:** Net asset strategy returns are pushed through the `PerformanceAnalytics` toolbox to generate institutional risk metrics, including Annualized Returns, Maximum Drawdowns, and the **Downside Downside Risk Adjusted Return (Sortino Ratio)** using a Minimum Acceptable Return (MAR) of 0.
+
+---
+
+## Technical Ecosystem & Dependencies
+* **Data Processing & Analytics:** `quantmod`, `TTR`, `xts`
+* **Volatility Modeling Frameworks:** `rugarch`
+* **Portfolio Attribution:** `PerformanceAnalytics`
