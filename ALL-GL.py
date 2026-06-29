@@ -171,3 +171,29 @@ plt.plot(raw_data['Close'][ticker_2], color='maroon', label=ticker_2)
 plt.title(f"Closing Prices of {ticker_1} and {ticker_2}")
 plt.legend()
 plt.show()
+
+# ==============================================================================
+# 7. PROFESSIONAL ANALYTICS SUMMARY
+# =============================================================================
+# Calculate Annualized Sharpe Ratio
+# We assume a risk-free rate of 0% for simplicity
+daily_returns = compare['Strategy (Adaptive Net)']
+sharpe_ratio = np.sqrt(252) * (daily_returns.mean() / daily_returns.std())
+
+# Calculate Calmar Ratio (Annualized Return / Max Drawdown)
+# First, approximate annualized return from total cumulative return
+total_years = (compare.index[-1] - compare.index[0]).days / 365.25
+annualized_return = (1 + portfolio_cumulative.iloc[-1])**(1/total_years) - 1
+calmar_ratio = abs(annualized_return / (max_dd / 100))
+
+print("\n" + "="*50)
+print(f"QUANTITATIVE PERFORMANCE METRICS: {ticker_1}/{ticker_2}")
+print("="*50)
+print(f"Cumulative Return:        {portfolio_cumulative.iloc[-1]*100:>10.2f}%")
+print(f"Annualized Return:        {annualized_return*100:>10.2f}%")
+print(f"Sharpe Ratio:             {sharpe_ratio:>10.2f}")
+print(f"Calmar Ratio:             {calmar_ratio:>10.2f}")
+print(f"Max Drawdown:             {max_dd:>10.2f}%")
+print("-" * 50)
+print(f"Benchmark (SPY) Return:   {benchmark_cumulative.iloc[-1]*100:>10.2f}%")
+print("="*50)
