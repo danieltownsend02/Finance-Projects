@@ -14,7 +14,7 @@ from arch import arch_model
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 
-# ==============================================================================
+# =============================================================================
 # 1. DATA ACQUISITION & PAIR CONFIGURATION 
 # ==============================================================================
 ticker_1 = "ALL"
