@@ -173,7 +173,7 @@ plt.legend()
 plt.show()
 
 # ==============================================================================
-# 7. PROFESSIONAL ANALYTICS SUMMARY
+#  PROFESSIONAL ANALYTICS SUMMARY
 # =============================================================================
 # Calculate Annualized Sharpe Ratio
 # We assume a risk-free rate of 0% for simplicity
